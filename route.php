@@ -2,7 +2,7 @@
 
 switch (getRoute()) {
 	case "docs/quick":
-		View(LAYOUT, "Header3", "Features");
+		View(LAYOUT, "Header3", "Quick");
 		break;
 
 	default:
