@@ -1,12 +1,12 @@
 <?php
-$route = substr(urldecode(stripslashes($_SERVER['REQUEST_URI'])), 1);
 
-switch ($route) {
-	case "blog":
+switch (getRoute()) {
+	case "docs/quick":
+		View(LAYOUT, "Header3", "Features");
 		break;
 
 	default:
-		View(LAYOUT, "Features");
+		View(LAYOUT, "Header", "Features");
 		break;
 }
 ?>

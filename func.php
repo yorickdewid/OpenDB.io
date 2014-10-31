@@ -1,5 +1,10 @@
 <?php
-function View($name, $content){
+
+function getRoute(){
+	return $route = substr(urldecode(stripslashes($_SERVER['REQUEST_URI'])), 1);
+}
+
+function View($name, $header, $content){
 	$view = "../view/".$name.".layout.php";
 	return include($view);
 }

@@ -17,7 +17,7 @@
   <body>
 
     <?#--  HEADER --?>
-    <?php Load('Header'); ?>
+    <?php Load($header); ?>
     <?#--  END OF HEADER --?>
 
     <?#-- CONTENT --?>

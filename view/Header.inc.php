@@ -42,7 +42,7 @@
     <div class="row">
       <div class="small-12 large-3 medium-3 columns">
         <div class="logo">
-          <a href="index-2.html" title=""><img src="images/logo.png" alt="" title=""/></a>
+          <a href="index-2.html" title=""><img src="/images/logo.png" alt="" title=""/></a>
         </div>
       </div>
 
