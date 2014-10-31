@@ -1,8 +1,12 @@
 <?php
 
 switch (getRoute()) {
+	case "blog":
+		View(LAYOUT, "Header.blog", "Blog");
+		break;
+
 	case "docs/quick":
-		View(LAYOUT, "Header3", "Quick");
+		View(LAYOUT, "Header.docs", "Quick");
 		break;
 
 	default:

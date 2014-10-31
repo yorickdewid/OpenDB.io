@@ -5,7 +5,7 @@
       <div class="small-12 columns">
         <div class="message-intro">
           <span class="message-line"></span>
-            <p>Cloud VPS</p>
+          <p>Cloud VPS</p>
           <span class="message-line"></span>
         </div>
         <h1>ACTIVATE IN MINUTES, ONLINE 24X7</h1>
