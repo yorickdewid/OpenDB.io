@@ -9,6 +9,16 @@ function View($name, $header, $content){
 	return include($view);
 }
 
+function Controller($name, $action="index"){
+	$controller = "../controller/".$name."Controller.php";
+	return include($controller);
+}
+
+function requireClass($name){
+	$class = "../class/".$name.".class.php";
+	return include($class);
+}
+
 function Load($name){
 	$view = "../view/".$name.".inc.php";
 	return include($view);

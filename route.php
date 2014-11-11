@@ -1,6 +1,14 @@
 <?php
 
 switch (getRoute()) {
+	case "test":
+		Controller("Test");
+		break;
+
+	case "support":
+		View(LAYOUT, "Header.support", "Support");
+		break;
+
 	case "blog":
 		View(LAYOUT, "Header.blog", "Blog");
 		break;
