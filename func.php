@@ -16,7 +16,7 @@ function Controller($name, $action="index"){
 
 function requireClass($name){
 	$class = "../class/".$name.".class.php";
-	return include($class);
+	return include_once($class);
 }
 
 function Load($name){
@@ -27,4 +27,13 @@ function Load($name){
 function Copyright(){
 	return date('Y') ." © Copyright ".APPNAME.", all rights reserved. ";
 }
+
+function phpbool($str){
+	return ($str=='t' ? 1 : 0);
+}
+
+function pgbool($bool){
+	return ($bool ? 't' : 'f');
+}
+
 ?>
