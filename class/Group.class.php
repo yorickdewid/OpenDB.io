@@ -59,7 +59,6 @@ class Group {
 				$set .= sprintf(", ownerid=%d ", $this->owner->id);
 
 			$query = sprintf("UPDATE public.group %s WHERE groupid=%d", $set, $this->id);
-			echo $query;
 			$this->_conn->ExecQuery($query);
 		}
 	}

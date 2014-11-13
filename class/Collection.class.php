@@ -2,23 +2,31 @@
 
 requireClass("Postgres");
 requireClass("User");
+requireClass("Database");
 
-class Database {
+class Collection {
 	var $id;
 	var $oid;
 	var $name;
 	var $owner;
-	var $private;
+	var $database;
 	var $created;
 	var $timestamp;
 
+	private $_conn_in = NULL;
 	private $_conn = NULL;
 
-	function __construct(){
-		$this->_conn = new Postgres("opendb", "localhost", 5432, "opendb", "q");
+	function __construct($database){
+		if($this->_check_database($database)){
+			$this->_conn_in = new Postgres(strtolower($database->owner->username) . '_' . $database->name, "localhost", 5432, "opendb", "q");
+			$this->_conn = new Postgres("opendb", "localhost", 5432, "opendb", "q");
+			$this->owner = $database->owner;
+			$this->database = $database;
+		}
 	}
 
 	function __destruct(){
+		$this->_conn_in->DBClose();
 		$this->_conn->DBClose();
 	}
 
@@ -27,11 +35,16 @@ class Database {
 			return TRUE;
 	}
 
+	private function _check_database($database){
+		if(is_a($database, 'Database'))
+			return TRUE;
+	}
+
 	function Exist(){
 		if(!empty($this->name) && !empty($this->owner->id) && $this->_check_owner($this->owner)){
-			$query = sprintf("SELECT oid FROM pg_database WHERE datname=lower('%s_%s')", $this->owner->username, $this->name);
-			$this->_conn->ExecQuery($query);
-			$rs = $this->_conn->FetchResult();
+			$query = sprintf("SELECT oid FROM pg_namespace WHERE nspname=lower('%s')", $this->name);
+			$this->_conn_in->ExecQuery($query);
+			$rs = $this->_conn_in->FetchResult();
 			return $rs['oid'];
 		}
 	}
@@ -39,13 +52,13 @@ class Database {
 	private function _insert(){
 		if(!empty($this->name) && !empty($this->owner->id) && $this->_check_owner($this->owner)){
 			if(!$this->Exist()){
-				$query0 = sprintf("CREATE DATABASE \"%s_%s\"", $this->owner->username, $this->name);
-				$this->_conn->ExecQuery($query0);
+				$query0 = sprintf("CREATE SCHEMA \"%s\"", $this->name);
+				$this->_conn_in->ExecQuery($query0);
 				$this->oid = $this->Exist();
-				$query = sprintf("INSERT INTO public.database (name, ownerid, oid) VALUES ('%s', %d, %d) RETURNING baseid", $this->name, $this->owner->id, $this->oid);
+				$query = sprintf("INSERT INTO public.collection (name, ownerid, baseid, oid) VALUES ('%s', %d, %d, %d) RETURNING collid", $this->name, $this->owner->id, $this->database->id, $this->oid);
 				$this->_conn->ExecQuery($query);
 				$rs = $this->_conn->FetchResult();
-				return $rs['baseid'];
+				return $rs['collid'];
 			}
 		}
 	}
@@ -55,7 +68,7 @@ class Database {
 			$this->id = $id;
 
 		if(!empty($this->id)){
-			$query = sprintf("SELECT * FROM public.database WHERE baseid=%d", $this->id);
+			$query = sprintf("SELECT * FROM public.collection WHERE collid=%d", $this->id);
 			$this->_conn->ExecQuery($query);
 			$rs = $this->_conn->FetchResult();
 			$this->name = $rs['name'];
@@ -66,40 +79,36 @@ class Database {
 			$this->created = $rs['created'];
 			$this->timestamp = $rs['timestamp'];
 			$this->oid = $rs['oid'];
-			$this->private = phpbool($rs['private']);
 		}
 	}
 
 	private function _update(){
 		if(!empty($this->id)){
-			$set = "SET baseid=baseid ";
+			$set = "SET collid=collid ";
 
 			if(!empty($this->name)){
 				if(!$this->Exist()){
 					$set .= sprintf(", name='%s' ", $this->name);
-					$query0 = sprintf("SELECT name FROM public.database WHERE baseid=%d", $this->id);
+					$query0 = sprintf("SELECT name FROM public.collection WHERE collid=%d", $this->id);
 					$this->_conn->ExecQuery($query0);
 					$rs = $this->_conn->FetchResult();
-					$query1 = sprintf("ALTER DATABASE \"%s_%s\" RENAME TO \"%s_%s\"", strtolower($this->owner->username), $rs['name'], strtolower($this->owner->username), $this->name);
-					$this->_conn->ExecQuery($query1);
+					$query1 = sprintf("ALTER SCHEMA \"%s\" RENAME TO \"%s\"", $rs['name'], $this->name);
+					$this->_conn_in->ExecQuery($query1);
 				}
 			}
 
 			if(!empty($this->owner->id))
 				$set .= sprintf(", ownerid=%d ", $this->owner->id);
 
-			if(!empty($this->owner->id))
-				$set .= sprintf(", private='%s' ", pgbool($this->private));
-
-			$query = sprintf("UPDATE public.database %s WHERE baseid=%d", $set, $this->id);
+			$query = sprintf("UPDATE public.collection %s WHERE collid=%d", $set, $this->id);
 			$this->_conn->ExecQuery($query);
 		}
 	}
 
 	function Save(){
-		if(!empty($this->id)){
+		if(!empty($this->id))
 			$this->_update();
-		}else{
+		else{
 			$this->id = $this->_insert();
 			$this->get();
 			return $this->id;
@@ -108,15 +117,15 @@ class Database {
 
 	function Delete(){
 		if(!empty($this->name) && !empty($this->owner->id) && $this->_check_owner($this->owner)){
-			$query0 = sprintf("DROP DATABASE \"%s_%s'\"", $this->owner->username, $this->name);
-			$this->_conn->ExecQuery($query0);
-			$query = sprintf("DELETE FROM public.database WHERE baseid=%d", $this->id);
+			$query0 = sprintf("DROP SCHEMA \"%s\"", $this->name);
+			$this->_conn_in->ExecQuery($query0);
+			$query = sprintf("DELETE FROM public.collection WHERE collid=%d", $this->id);
 			$this->_conn->ExecQuery($query);
 			unset($this->id);
 			unset($this->oid);
 			unset($this->name);
 			unset($this->owner);
-			unset($this->private);
+			unset($this->database);
 			unset($this->created);
 			unset($this->timestamp);
 		}
