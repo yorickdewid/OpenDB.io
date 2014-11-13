@@ -5,7 +5,7 @@ requireClass("Postgres");
 class User {
 	var $id;
 	var $username;
-	var $_password;
+	var $password;
 	var $email;
 	var $email_confirmed;
 	var $blocked;
@@ -16,10 +16,7 @@ class User {
 
 	private $_conn = NULL;
 
-	function __construct($username, $password, $email){
-		$this->username = $username;
-		$this->_password = $password;
-		$this->email = $email;
+	function __construct(){
 		$this->_conn = new Postgres("opendb", "localhost", 5432, "opendb", "q");
 	}
 
@@ -28,15 +25,18 @@ class User {
 	}
 
 	private function _insert(){
-		if(!empty($this->username) && !empty($this->_password) && !empty($this->email)){
-			$query = sprintf("INSERT INTO public.user (username, password, email) VALUES ('%s', '%s', '%s') RETURNING userid", $this->username, $this->_password, $this->email);
+		if(!empty($this->username) && !empty($this->password) && !empty($this->email)){
+			$query = sprintf("INSERT INTO public.user (username, password, email) VALUES ('%s', '%s', '%s') RETURNING userid", $this->username, $this->password, $this->email);
 			$this->_conn->ExecQuery($query);
 			$rs = $this->_conn->FetchResult();
 			return $rs['userid'];
 		}
 	}
 
-	private function _get(){
+	function get($id=''){
+		if(!empty($id))
+			$this->id = $id;
+	
 		if(!empty($this->id)){
 			$query = sprintf("SELECT * FROM public.user WHERE userid=%d", $this->id);
 			$this->_conn->ExecQuery($query);
@@ -84,7 +84,7 @@ class User {
 			$this->_update();
 		else{
 			$this->id = $this->_insert();
-			$this->_get();
+			$this->get();
 			return $this->id;
 		}
 	}
@@ -95,7 +95,7 @@ class User {
 			$this->_conn->ExecQuery($query);
 			unset($this->id);
 			unset($this->username);
-			unset($this->_password);
+			unset($this->password);
 			unset($this->email);
 			unset($this->email_confirmed);
 			unset($this->blocked);

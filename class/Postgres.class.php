@@ -166,9 +166,15 @@ class Postgres {
 			pg_exec($this->dbconnect, "Commit");
 	}
 
+	function isOpen(){
+		return @pg_ping($this->dbconnect);
+	}
+
 	function DBClose(){
 		if(!$this->persistent)
-			pg_close($this->dbconnect);
+			if($this->isOpen()){
+				pg_close($this->dbconnect);
+			}
 	}
 }
 
